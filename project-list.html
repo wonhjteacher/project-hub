@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PROJECT LIST — PROJECT HUB</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+
+<style>
+/* ============================================================
+   DESIGN_PROJECT_HUB.md 9장 — 디자인 토큰
+   ============================================================ */
+:root {
+  /* Color */
+  --bg-base:        #121212;
+  --bg-surface:     #1A1A1A;
+  --bg-elevated:    #222222;
+
+  --text-primary:   #F5F5F5;
+  --text-secondary: #A1A1AA;
+  --text-tertiary:  #8A8A8F;
+
+  --bg-overlay:     rgba(0, 0, 0, 0.72);
+
+  --accent:         #3B82F6;
+  --accent-hover:   #60A5FA;
+  --accent-subtle:  rgba(59, 130, 246, 0.12);
+  --accent-border:  rgba(59, 130, 246, 0.40);
+  --on-accent:      #0A0A0A;
+
+  --line-subtle:    rgba(255, 255, 255, 0.08);
+  --line-default:   rgba(255, 255, 255, 0.14);
+
+  /* Font */
+  --font-en: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-kr: 'Pretendard', 'Apple SD Gothic Neo', system-ui, sans-serif;
+
+  /* Type scale */
+  --fs-h1:    clamp(1.75rem, 4vw, 2.5rem);
+  --fs-h2:    clamp(1.25rem, 2.5vw, 1.5rem);
+  --fs-h3:    1.125rem;
+  --fs-body:  1rem;
+  --fs-small: 0.875rem;
+  --fs-label: 0.75rem;
+
+  /* Space (4px 기반) */
+  --space-1: 4px;   --space-2: 8px;   --space-3: 12px;
+  --space-4: 16px;  --space-5: 20px;  --space-6: 24px;
+  --space-8: 32px;  --space-12: 48px; --space-16: 64px;
+  --space-24: 96px;
+
+  /* 5.4 모서리 반경 */
+  --radius-sm:   6px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-full: 999px;
+
+  /* 5.5 그림자 */
+  --shadow-card:  0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.6);
+
+  /* Motion */
+  --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast:   150ms;
+  --dur-base:   300ms;
+  --dur-slow:   600ms;
+
+  /* 캐러셀 — 랩퍼 1280px (요청 스펙), 카드 폭은 DESIGN 5.3 */
+  --carousel-w: 1280px;
+  --card-w:     max(260px, 74vw);   /* 모바일: 다음 카드가 잘려 보여야 한다 */
+  --card-gap:   var(--space-6);
+}
+
+@media (min-width: 768px) {
+  :root { --card-w: 320px; }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-kr);
+  font-size: var(--fs-body);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   상단 타이틀 (영문 전용)
+   ============================================================ */
+.page-head {
+  max-width: var(--carousel-w);
+  margin: 0 auto;
+  padding: var(--space-24) 20px var(--space-12);
+}
+
+@media (min-width: 768px) {
+  .page-head { padding-left: 40px; padding-right: 40px; }
+}
+
+.page-head__title {
+  margin: 0;
+  font-family: var(--font-en);
+  font-size: var(--fs-h1);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+/* ============================================================
+   캐러셀 — 랩퍼 1280px
+   ============================================================ */
+.carousel {
+  width: min(var(--carousel-w), 100%);
+  margin: 0 auto;
+  overflow: hidden;
+  /* 양끝을 흐려 "옆에 더 있다"를 알린다 */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 5%, #000 95%, transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 5%, #000 95%, transparent 100%);
+}
+
+.carousel__track {
+  display: flex;
+  gap: var(--card-gap);
+  width: max-content;
+  padding: var(--space-4) 0 var(--space-12);
+  /* CRD-11 — 세로 스크롤은 브라우저에 맡기고, 가로만 직접 처리한다 */
+  touch-action: pan-y;
+  cursor: grab;
+  will-change: transform;
+}
+
+.carousel__track.is-dragging { cursor: grabbing; }
+
+/* A5 — 자동 이동을 못 쓰는 환경에서는 평범한 가로 스크롤 목록으로 대체한다 */
+.carousel.is-static {
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+}
+
+.carousel.is-static .carousel__track { cursor: default; }
+.carousel.is-static .card { scroll-snap-align: center; }
+
+/* ============================================================
+   6.2 프로젝트 카드
+   ============================================================ */
+.card {
+  flex: 0 0 var(--card-w);
+  width: var(--card-w);
+  padding: var(--space-5);
+  background: var(--bg-surface);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-md);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+/* 카드는 기본 상태에서 테두리를 드러내지 않는다 — 호버에서만 발광한다 */
+.card:not(:hover):not(:focus-visible):not(:active) { border-color: transparent; }
+
+/*
+  CRD-06 / 7.6 — 확정안 B(테두리 발광) + C(번호 강조).
+  A(떠오름, translateY)는 문서에서 명시적으로 제외됐다.
+  카드가 이미 가로로 이동 중이라 세로 리프트가 겹치면
+  반응이 아니라 흔들림으로 읽히기 때문이다.
+*/
+.card:hover,
+.card:focus-visible { border-color: var(--accent); }
+
+.card:hover .card__num,
+.card:focus-visible .card__num { color: var(--accent); }
+
+/* 터치 디바이스에서는 호버 대신 :active로 대체한다 */
+@media (hover: none) {
+  .card:active { border-color: var(--accent); }
+  .card:active .card__num { color: var(--accent); }
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--accent-hover);
+  outline-offset: 3px;
+}
+
+/* 드래그 중에는 호버가 따라붙지 않게 한다 */
+.carousel__track.is-dragging .card { pointer-events: none; }
+
+/* 썸네일 — 16:9 고정, 외부 이미지 없이 CSS로만 (D-O2) */
+.card__thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: calc(var(--radius-md) - 2px);
+  background:
+    repeating-linear-gradient(45deg,
+      rgba(245, 245, 245, 0.015) 0 2px,
+      transparent 2px 6px),
+    var(--bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Coming Soon — 별도 배지 없이 썸네일 중앙 (D4) */
+.card__soon {
+  font-family: var(--font-en);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  line-height: 1;
+}
+
+.card__num {
+  display: block;
+  margin-top: var(--space-4);
+  font-family: var(--font-en);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  line-height: 1;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.card__title {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+  /* CRD-07 — 제목은 1줄 고정 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card__summary {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-small);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  /* CRD-07 — 2줄 초과 시 말줄임, 카드 높이 고정 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(2 * 1.7 * var(--fs-small));
+}
+
+/* 펼쳐진 카드는 원래 자리에서 잠시 비운다 */
+.card.is-source { opacity: 0; }
+
+/* ============================================================
+   확대 패널 — 클릭한 카드가 앞으로 나오며 커진다
+   ============================================================ */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  visibility: hidden;
+  z-index: 90;
+}
+
+.backdrop[data-open="true"] { visibility: visible; }
+
+.detail {
+  position: fixed;
+  z-index: 100;
+  background: var(--bg-surface);
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  overflow: hidden;
+  visibility: hidden;
+  will-change: top, left, width, height;
+}
+
+.detail[data-open="true"] { visibility: visible; }
+
+/* 다 커진 뒤에는 모달 스펙(6.3)을 따른다 */
+.detail.is-expanded {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-modal);
+  padding: var(--space-8);
+  overflow-y: auto;
+}
+
+@media (max-width: 767px) {
+  .detail.is-expanded { padding: var(--space-6); }
+}
+
+.detail__close {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  opacity: 0;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.detail__close:hover { color: var(--text-primary); }
+
+.detail__close:focus-visible {
+  outline: 2px solid var(--accent-hover);
+  outline-offset: 2px;
+}
+
+.detail__thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  background:
+    repeating-linear-gradient(45deg,
+      rgba(245, 245, 245, 0.015) 0 2px,
+      transparent 2px 6px),
+    var(--bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail__num {
+  display: block;
+  margin-top: var(--space-6);
+  font-family: var(--font-en);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  line-height: 1;
+}
+
+.detail__title {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-h2);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.detail__summary {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-body);
+  color: var(--text-secondary);
+}
+
+/* 상세 본문 — PRD 5.3의 4개 섹션 자리 */
+.detail__body {
+  margin-top: var(--space-8);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--line-subtle);
+}
+
+.detail__section + .detail__section { margin-top: var(--space-8); }
+
+.detail__section h3 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--fs-h3);
+  font-weight: 600;
+}
+
+.detail__section p {
+  margin: 0;
+  font-size: var(--fs-body);
+  color: var(--text-secondary);
+}
+
+/* 커지는 동안 본문이 찌그러져 보이지 않게 처음엔 숨긴다 */
+.detail__meta,
+.detail__body { opacity: 0; }
+
+body.is-locked { overflow: hidden; }
+
+/* 접근성 — 스크린리더 전용 */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>
+</head>
+
+<body>
+
+  <header class="page-head">
+    <h1 class="page-head__title">Project List</h1>
+  </header>
+
+  <!-- CRD-01 / CRD-02 — 카드 8장 가로 슬라이더, 무한 루프 -->
+  <div class="carousel" id="carousel">
+    <div class="carousel__track" id="track"></div>
+  </div>
+
+  <div class="backdrop" id="backdrop"></div>
+
+  <article class="detail" id="detail" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <button class="detail__close" id="detailClose" type="button" aria-label="닫기">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="detail__thumb"><span class="card__soon">Coming Soon</span></div>
+
+    <div class="detail__meta">
+      <span class="detail__num" id="detailNum"></span>
+      <h2 class="detail__title" id="detailTitle"></h2>
+      <p class="detail__summary" id="detailSummary"></p>
+    </div>
+
+    <div class="detail__body" id="detailBody"></div>
+  </article>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+  <script>
+  /* ============================================================
+     CRD-08 — 카드는 데이터 배열로부터 렌더링한다 (하드코딩 금지)
+
+     ⚠️ PRD 5.2 "프로젝트 목록(8개)" 표가 아직 미확정이다.
+        아래 title / summary / sections 는 자리표시자이며,
+        그 표가 채워지는 대로 이 배열만 교체하면 된다.
+     ============================================================ */
+  const PROJECTS = [
+    { num: '01', title: '프로젝트 01', summary: '한 줄 요약이 들어갈 자리입니다.' },
+    { num: '02', title: '프로젝트 02', summary: '한 줄 요약이 들어갈 자리입니다.' },
+    { num: '03', title: '프로젝트 03', summary: '한 줄 요약이 들어갈 자리입니다.' },
+    { num: '04', title: '프로젝트 04', summary: '한 줄 요약이 들어갈 자리입니다.' },
+    { num: '05', title: '프로젝트 05', summary: '한 줄 요약이 들어갈 자리입니다.' },
+    { num: '06', title: '프로젝트 06', summary: '한 줄 요약이 들어갈 자리입니다.' },
+    { num: '07', title: '프로젝트 07', summary: '한 줄 요약이 들어갈 자리입니다.' },
+    { num: '08', title: '프로젝트 08', summary: '한 줄 요약이 들어갈 자리입니다.' }
+  ];
+
+  // PRD 5.3 — 상세 모달의 4개 섹션 (내용 미확정)
+  const SECTIONS = ['문제 정의', '타겟 사용자', '핵심 예정 기능', '사용 기술 스택'];
+
+  const track     = document.getElementById('track');
+  const carousel  = document.getElementById('carousel');
+  const detail    = document.getElementById('detail');
+  const backdrop  = document.getElementById('backdrop');
+  const closeBtn  = document.getElementById('detailClose');
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* --------------------------------------------------------
+     렌더 — 무한 루프를 위해 같은 세트를 2벌 깐다.
+     정확히 한 세트만큼 이동한 순간의 화면이 시작과 동일하므로
+     그 지점에서 되감으면 이음매가 보이지 않는다.
+     -------------------------------------------------------- */
+  function cardMarkup(p, isClone) {
+    return `
+      <button class="card" type="button"
+              data-index="${PROJECTS.indexOf(p)}"
+              ${isClone ? 'aria-hidden="true" tabindex="-1"' : ''}>
+        <span class="card__thumb"><span class="card__soon">Coming Soon</span></span>
+        <span class="card__num">${p.num}</span>
+        <span class="card__title">${p.title}</span>
+        <span class="card__summary">${p.summary}</span>
+      </button>`;
+  }
+
+  // A5 — 자동 이동을 하지 않는 환경에서는 복제본이 중복 목록으로 읽히므로 한 세트만 깐다
+  track.innerHTML = reduceMotion
+    ? PROJECTS.map(p => cardMarkup(p, false)).join('')
+    : PROJECTS.map(p => cardMarkup(p, false)).join('') +
+      PROJECTS.map(p => cardMarkup(p, true)).join('');
+
+  if (reduceMotion) carousel.classList.add('is-static');
+
+  /* 7.4 — 카드 최초 등장: 스태거 페이드 업 */
+  if (!reduceMotion) {
+    gsap.from(track.querySelectorAll('.card:not([aria-hidden])'), {
+      y: 16, opacity: 0,
+      duration: 0.3, ease: 'power2.out',
+      stagger: 0.06
+    });
+  }
+
+  /* --------------------------------------------------------
+     7.3 — 무한 루프: 등속 좌측 이동, 52px/sec, ease none
+     -------------------------------------------------------- */
+  const SPEED = 52;                  // px per second (문서 확정값)
+  let loop = null;
+  let setWidth = 0;                  // 카드 한 세트의 폭 (gap 포함)
+
+  function buildLoop() {
+    if (loop) loop.kill();
+    gsap.set(track, { xPercent: 0 });
+
+    // 트랙 전체가 2세트이므로 한 세트 = 절반
+    setWidth = track.scrollWidth / 2;
+
+    if (reduceMotion) return;        // 자동 이동 생략
+
+    loop = gsap.to(track, {
+      xPercent: -50,                 // 정확히 한 세트만큼
+      duration: setWidth / SPEED,
+      ease: 'none',
+      repeat: -1
+    });
+  }
+
+  document.fonts.ready.then(buildLoop);
+  window.addEventListener('resize', () => {
+    const p = loop ? loop.progress() : 0;
+    buildLoop();
+    if (loop) loop.progress(p);
+  });
+
+  /* --------------------------------------------------------
+     7.3 — 정지·재개: timeScale 1 ↔ 0, 450ms, power2.out
+     -------------------------------------------------------- */
+  let holdCount = 0;                 // 호버·포커스·드래그·상세가 겹칠 수 있다
+
+  function holdLoop() {
+    if (!loop) return;
+    if (++holdCount === 1) gsap.to(loop, { timeScale: 0, duration: 0.45, ease: 'power2.out' });
+  }
+
+  function releaseLoop() {
+    if (!loop) return;
+    if (--holdCount <= 0) {
+      holdCount = 0;
+      gsap.to(loop, { timeScale: 1, duration: 0.45, ease: 'power2.out' });
+    }
+  }
+
+  // CRD-09 — 호버·포커스 시 이동을 멈춘다
+  carousel.addEventListener('pointerenter', holdLoop);
+  carousel.addEventListener('pointerleave', releaseLoop);
+  carousel.addEventListener('focusin',  holdLoop);
+  carousel.addEventListener('focusout', releaseLoop);
+
+  /* --------------------------------------------------------
+     CRD-10 — 드래그·스와이프
+     트랙의 x를 직접 밀면 자동 루프 트윈과 좌표를 두고 싸우게 된다.
+     대신 타임라인의 progress를 옮겨, 자동 재생과 같은 좌표계를 쓴다.
+     -------------------------------------------------------- */
+  const wrap01 = gsap.utils.wrap(0, 1);
+  let dragging = false, startX = 0, startY = 0, startProgress = 0, axisLocked = null;
+  let draggedSinceDown = false;   // 드래그로 끝난 제스처인지 (click 억제용)
+  let lastX = 0, lastT = 0, velocity = 0;   // px/ms — 관성 계산용
+  let inertia = null;
+
+  track.addEventListener('pointerdown', (e) => {
+    if (!loop || e.button !== 0) return;
+    // 관성이 아직 돌고 있으면 그것이 쥐고 있던 hold를 대신 돌려준다.
+    // 그러지 않으면 onComplete가 영영 오지 않아 루프가 멈춘 채 남는다.
+    if (inertia?.isActive()) { inertia.kill(); releaseLoop(); }
+    dragging = true;
+    axisLocked = null;
+    draggedSinceDown = false;
+    velocity = 0;
+    lastX = e.clientX;
+    lastT = e.timeStamp;
+    startX = e.clientX;
+    startY = e.clientY;
+    startProgress = loop.progress();
+    holdLoop();
+  });
+
+  window.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    // CRD-11 — 세로 의도가 분명하면 페이지 스크롤에 양보한다
+    if (axisLocked === null) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      axisLocked = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+      if (axisLocked === 'x') {
+        draggedSinceDown = true;
+        track.classList.add('is-dragging');
+        track.setPointerCapture?.(e.pointerId);
+      }
+    }
+    if (axisLocked !== 'x') return;
+
+    // 한 세트 폭만큼 밀면 진행도 1바퀴
+    loop.progress(wrap01(startProgress - dx / setWidth));
+
+    const dt = e.timeStamp - lastT;
+    if (dt > 0) velocity = (e.clientX - lastX) / dt;
+    lastX = e.clientX;
+    lastT = e.timeStamp;
+  });
+
+  function endDrag(e) {
+    if (!dragging) return;
+    dragging = false;
+    track.classList.remove('is-dragging');
+
+    // 7.4 드래그 관성 — 던진 뒤 900ms, power3.out 으로 감속
+    // 손을 뗀 뒤 마지막 움직임이 오래됐다면 이미 멈춘 것이므로 던지지 않는다
+    const stale = e && (e.timeStamp - lastT) > 100;
+    if (axisLocked === 'x' && !stale && Math.abs(velocity) > 0.05) {
+      const throwPx = velocity * 900 * 0.5;
+      const proxy = { p: loop.progress() };
+      inertia = gsap.to(proxy, {
+        p: proxy.p - throwPx / setWidth,
+        duration: 0.9,
+        ease: 'power3.out',
+        onUpdate: () => loop.progress(wrap01(proxy.p)),
+        onComplete: releaseLoop
+      });
+      return;
+    }
+
+    releaseLoop();
+  }
+
+  window.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointercancel', endDrag);
+
+  /* --------------------------------------------------------
+     클릭 → 카드가 앞으로 나오며 커진다
+
+     원본 카드는 움직이는 트랙 안에 있어 좌표가 계속 변한다.
+     그래서 카드를 옮기는 대신, 클릭 순간의 화면 좌표에 고정 패널을
+     겹쳐 두고 그 패널만 키운다. 트랙의 transform과 얽히지 않는다.
+     -------------------------------------------------------- */
+  const MODAL_MAX_W = 680;           // 6.3 모달 최대 폭
+  const MODAL_MAX_H = 0.85;          // 6.3 모달 최대 높이 (85vh)
+
+  let openIndex = null;
+  let sourceCard = null;
+  let lastFocused = null;
+
+  function targetRect() {
+    const w = Math.min(MODAL_MAX_W, window.innerWidth - 40);
+    const h = Math.min(window.innerHeight * MODAL_MAX_H, window.innerHeight - 40);
+    return {
+      width: w,
+      height: h,
+      left: (window.innerWidth - w) / 2,
+      top: (window.innerHeight - h) / 2
+    };
+  }
+
+  function openCard(card) {
+    if (openIndex !== null) return;
+
+    const p = PROJECTS[+card.dataset.index];
+    openIndex = +card.dataset.index;
+    sourceCard = card;
+    lastFocused = document.activeElement;
+
+    // 상세 내용 채우기
+    document.getElementById('detailNum').textContent = p.num;
+    document.getElementById('detailTitle').textContent = p.title;
+    document.getElementById('detailSummary').textContent = p.summary;
+    document.getElementById('detailBody').innerHTML = SECTIONS.map(s => `
+      <section class="detail__section">
+        <h3>${s}</h3>
+        <p>내용 준비 중입니다.</p>
+      </section>`).join('');
+
+    holdLoop();
+    document.body.classList.add('is-locked');
+
+    // 클릭한 카드가 있던 자리에서 출발한다
+    const from = card.getBoundingClientRect();
+    card.classList.add('is-source');
+
+    detail.dataset.open = 'true';
+    backdrop.dataset.open = 'true';
+    detail.classList.remove('is-expanded');
+
+    gsap.set(detail, {
+      left: from.left, top: from.top,
+      width: from.width, height: from.height
+    });
+
+    const to = targetRect();
+
+    gsap.timeline()
+      .to(backdrop, { opacity: 1, duration: 0.3, ease: 'power2.out' }, 0)
+      .to(detail, {
+        left: to.left, top: to.top, width: to.width, height: to.height,
+        duration: reduceMotion ? 0 : 0.55,
+        ease: 'power2.inOut',
+        onStart: () => detail.classList.add('is-expanded')
+      }, 0)
+      // 다 커진 뒤에 본문을 얹는다 — 커지는 동안 글자가 흐르지 않게
+      .to(['.detail__meta', '.detail__body', '.detail__close'], {
+        opacity: 1, duration: 0.3, ease: 'power2.out', stagger: 0.05
+      }, reduceMotion ? 0 : 0.4)
+      .add(() => closeBtn.focus());
+  }
+
+  function closeCard() {
+    if (openIndex === null) return;
+
+    const back = sourceCard.getBoundingClientRect();
+    const card = sourceCard;
+
+    openIndex = null;
+    sourceCard = null;
+
+    gsap.timeline({
+      onComplete: () => {
+        detail.dataset.open = 'false';
+        backdrop.dataset.open = 'false';
+        detail.classList.remove('is-expanded');
+        card.classList.remove('is-source');
+        document.body.classList.remove('is-locked');
+        releaseLoop();
+        lastFocused?.focus();
+      }
+    })
+      .to(['.detail__meta', '.detail__body', '.detail__close'], {
+        opacity: 0, duration: 0.15, ease: 'power2.in'
+      }, 0)
+      .to(detail, {
+        left: back.left, top: back.top, width: back.width, height: back.height,
+        duration: reduceMotion ? 0 : 0.45,
+        ease: 'power2.inOut',
+        onStart: () => detail.classList.remove('is-expanded')
+      }, reduceMotion ? 0 : 0.1)
+      .to(backdrop, { opacity: 0, duration: 0.3, ease: 'power2.in' }, '<');
+  }
+
+  // CRD-05 — 카드 전체 영역이 클릭 가능
+  track.addEventListener('click', (e) => {
+    const card = e.target.closest('.card');
+    if (!card) return;
+    // 밀어서 넘긴 제스처의 끝에서 발생한 click은 무시한다.
+    // pointerup이 click보다 먼저 오므로 클래스가 아니라 플래그로 판별해야 한다.
+    if (draggedSinceDown) { draggedSinceDown = false; return; }
+    openCard(card);
+  });
+
+  closeBtn.addEventListener('click', closeCard);
+  backdrop.addEventListener('click', closeCard);
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && openIndex !== null) closeCard();
+  });
+
+  // 열려 있는 동안 창 크기가 바뀌면 패널을 다시 맞춘다
+  window.addEventListener('resize', () => {
+    if (openIndex === null) return;
+    gsap.set(detail, targetRect());
+  });
+  </script>
+</body>
+</html>
