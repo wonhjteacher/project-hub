@@ -117,40 +117,6 @@ body {
   color: var(--text-primary);
 }
 
-/* ABT-05 — About으로 가는 단일 경로. 타이틀과 같은 줄에 둔다 */
-.page-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
-
-.page-head__link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;          /* A4 — 터치 영역 */
-  padding: 0 var(--space-3);
-
-  font-family: var(--font-en);
-  font-size: var(--fs-label);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
-  text-decoration: none;
-  white-space: nowrap;
-
-  transition: color var(--dur-fast) var(--ease-out);
-}
-
-.page-head__link:hover { color: var(--text-primary); }
-
-.page-head__link:focus-visible {
-  outline: 2px solid var(--accent-hover);
-  outline-offset: 3px;
-  border-radius: var(--radius-sm);
-}
-
 /* ============================================================
    캐러셀 — 랩퍼 1280px
    ============================================================ */
@@ -446,7 +412,6 @@ body.is-locked { overflow: hidden; }
 
   <header class="page-head">
     <h1 class="page-head__title">Project List</h1>
-    <a class="page-head__link" href="about.html">About</a>
   </header>
 
   <!-- CRD-01 / CRD-02 — 카드 8장 가로 슬라이더, 무한 루프 -->
