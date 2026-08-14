@@ -236,6 +236,7 @@ body {
   position: relative;
   aspect-ratio: 16 / 9;
   border-radius: calc(var(--radius-md) - 2px);
+  overflow: hidden;
   background:
     repeating-linear-gradient(45deg,
       rgba(245, 245, 245, 0.015) 0 2px,
@@ -255,6 +256,31 @@ body {
   text-transform: uppercase;
   color: var(--text-tertiary);
   line-height: 1;
+}
+
+/* 배포 완료된 프로젝트 — 8장이 더 이상 동일 상태가 아니므로 구분한다 (v1.2)
+   --accent(#3B82F6)는 #222 위에서 3.6:1로 소형 텍스트 대비 기준(4.5:1)에 미달한다.
+   한 단계 밝은 --accent-hover(5.9:1)를 쓴다. */
+.card__soon.is-live { color: var(--accent-hover); }
+
+/* 배포된 프로젝트는 실제 첫 화면 캡처를 깐다 (v1.2 — D-O2 적용 범위 축소) */
+.card__shot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+/* 캡처 위에 얹힐 때는 중앙 텍스트로는 묻힌다. 좌상단 필로 전환한다. */
+.card__soon.is-over-shot {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: rgba(10, 10, 10, 0.72);
 }
 
 .card__num {
@@ -367,6 +393,7 @@ body {
   position: relative;
   aspect-ratio: 16 / 9;
   border-radius: var(--radius-md);
+  overflow: hidden;
   background:
     repeating-linear-gradient(45deg,
       rgba(245, 245, 245, 0.015) 0 2px,
@@ -402,6 +429,35 @@ body {
   color: var(--text-secondary);
 }
 
+/* 배포된 프로젝트의 실물로 나가는 CTA — CTC-03에 따라 새 탭 (v1.2) */
+.detail__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+  min-height: 44px;              /* 모바일 터치 타깃 */
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: var(--fs-body);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+/* display 를 지정하면 hidden 속성의 기본 display:none 이 덮인다. 다시 눌러준다. */
+.detail__cta[hidden] { display: none; }
+
+.detail__cta:hover { background: var(--accent-hover); }
+
+.detail__cta:focus-visible {
+  outline: 2px solid var(--accent-hover);
+  outline-offset: 2px;
+}
+
+.detail__cta svg { flex: none; }
+
 /* 상세 본문 — PRD 5.3의 4개 섹션 자리 */
 .detail__body {
   margin-top: var(--space-8);
@@ -421,6 +477,39 @@ body {
   margin: 0;
   font-size: var(--fs-body);
   color: var(--text-secondary);
+}
+
+/* 핵심 예정 기능 — PRD 5.3 "3~5개 항목" (v1.2) */
+.detail__list {
+  margin: 0;
+  padding-left: 1.2em;
+  font-size: var(--fs-body);
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* DESIGN 6.3 — 불릿 마커는 --accent */
+.detail__list li::marker { color: var(--accent); }
+
+/* 사용 기술 스택 — PRD 5.3 "태그 나열" (v1.2) */
+.detail__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* DESIGN 3.2 — 기술 스택 태그는 --accent-subtle 배경 + --accent-hover 글자 */
+.detail__tags li {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--accent-subtle);
+  font-family: var(--font-en);
+  font-size: var(--fs-small);
+  color: var(--accent-hover);
+  line-height: 1.8;
 }
 
 /* 커지는 동안 본문이 찌그러져 보이지 않게 처음엔 숨긴다 */
@@ -463,12 +552,23 @@ body.is-locked { overflow: hidden; }
       </svg>
     </button>
 
-    <div class="detail__thumb"><span class="card__soon">Coming Soon</span></div>
+    <!-- 카드와 동일한 thumbInner() 로 채운다 -->
+    <div class="detail__thumb" id="detailThumb"></div>
 
     <div class="detail__meta">
       <span class="detail__num" id="detailNum"></span>
       <h2 class="detail__title" id="detailTitle"></h2>
       <p class="detail__summary" id="detailSummary"></p>
+
+      <!-- 배포된 프로젝트에만 나타난다. 그 외에는 hidden 유지 -->
+      <a class="detail__cta" id="detailCta" href="#" target="_blank" rel="noopener noreferrer" hidden>
+        <span>사이트 방문</span>
+        <span class="sr-only">(새 창에서 열립니다)</span>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M5 2h7v7M12 2L4 10M9 12H2V5" stroke="currentColor" stroke-width="1.5"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
     </div>
 
     <div class="detail__body" id="detailBody"></div>
@@ -484,7 +584,30 @@ body.is-locked { overflow: hidden; }
         그 표가 채워지는 대로 이 배열만 교체하면 된다.
      ============================================================ */
   const PROJECTS = [
-    { num: '01', title: '프로젝트 01', summary: '한 줄 요약이 들어갈 자리입니다.' },
+    {
+      num: '01',
+      title: '오늘은 여기',
+      summary: '담아둔 맛집 중에서 오늘 갈 한 곳을 골라드려요.',
+      status: 'live',
+      liveUrl: 'https://review-two-murex.vercel.app/',
+      thumbnail: 'assets/project-01.jpg',   // 배포 사이트 첫 화면 캡처 (16:9, 871×490)
+      detail: {
+        problem: '맛집을 담아두는 것까지는 쉬운데, 꺼내 쓰는 단계가 비어 있다. '
+               + '저장 목록이 길어질수록 열어보기 싫어지고, 뭐가 내 취향이었는지도 기억나지 않는다. '
+               + '그래서 결국 어제 갔던 데를 또 간다. '
+               + '문제는 저장 기능이 아니라 저장한 것을 다시 꺼내는 경험에 있다.',
+        target: '가보고 싶은 곳을 꾸준히 저장해두지만 정작 결정 앞에서 막히는 사람. '
+              + '특히 점심·혼밥 장소를 매일 새로 고민하는 직장인.',
+        features: [
+          '조건에 맞는 한 곳을 3초 만에 골라주기 (현재 체험 가능)',
+          '맛집 담기 — 링크 하나로 목록에 추가',
+          '방문 기록 — 또 갈지 안 갈지 한 줄만 남기기',
+          '리뷰 탐색 — 다른 사람들의 기록에서 찾아보기',
+          '취향 대시보드 — 내 취향을 한눈에 보기'
+        ],
+        stack: ['HTML', 'CSS', 'Vanilla JS', 'Vercel']
+      }
+    },
     { num: '02', title: '프로젝트 02', summary: '한 줄 요약이 들어갈 자리입니다.' },
     { num: '03', title: '프로젝트 03', summary: '한 줄 요약이 들어갈 자리입니다.' },
     { num: '04', title: '프로젝트 04', summary: '한 줄 요약이 들어갈 자리입니다.' },
@@ -494,8 +617,14 @@ body.is-locked { overflow: hidden; }
     { num: '08', title: '프로젝트 08', summary: '한 줄 요약이 들어갈 자리입니다.' }
   ];
 
-  // PRD 5.3 — 상세 모달의 4개 섹션 (내용 미확정)
-  const SECTIONS = ['문제 정의', '타겟 사용자', '핵심 예정 기능', '사용 기술 스택'];
+  /* PRD 5.3 — 상세 모달의 4개 섹션. 순서가 곧 서사다: 문제 → 사람 → 해결 → 도구.
+     as 는 렌더 형태로, 문서상 features 는 "3~5개 항목", stack 은 "태그 나열"이다. */
+  const SECTIONS = [
+    { key: 'problem',  label: '문제 정의',      as: 'text' },
+    { key: 'target',   label: '타겟 사용자',    as: 'text' },
+    { key: 'features', label: '핵심 예정 기능', as: 'list' },
+    { key: 'stack',    label: '사용 기술 스택', as: 'tags' }
+  ];
 
   const track     = document.getElementById('track');
   const carousel  = document.getElementById('carousel');
@@ -510,12 +639,50 @@ body.is-locked { overflow: hidden; }
      정확히 한 세트만큼 이동한 순간의 화면이 시작과 동일하므로
      그 지점에서 되감으면 이음매가 보이지 않는다.
      -------------------------------------------------------- */
+  // 배포 여부에 따라 썸네일 문구가 갈린다 (v1.2 — 8장 동일 상태 전제가 깨짐)
+  const isLive = p => p.status === 'live';
+  const thumbLabel = p => isLive(p) ? 'Live' : 'Coming Soon';
+
+  // 데이터를 innerHTML로 넣으므로, 나중에 채울 내용에 <,& 가 섞여도 깨지지 않게 막아둔다
+  const esc = str => String(str).replace(/[&<>"]/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  /* 썸네일 속 — 카드와 모달이 같은 것을 그린다.
+     thumbnail 이 없으면 기존 CSS 텍스처 + 중앙 문구 그대로다.
+     alt: 카드 안에서는 ''(카드 전체가 button 이라 제목이 이미 낭독된다),
+          모달에서는 설명형 (DESIGN A6). */
+  function thumbInner(p, alt) {
+    const label = `<span class="card__soon${isLive(p) ? ' is-live' : ''}${p.thumbnail ? ' is-over-shot' : ''}">${thumbLabel(p)}</span>`;
+    if (!p.thumbnail) return label;
+    return `<img class="card__shot" src="${esc(p.thumbnail)}" alt="${esc(alt)}" loading="lazy">${label}`;
+  }
+
+  /* 섹션 하나를 그린다. 값이 아직 없으면 자리표시자를 둔다 —
+     02~08번은 PROJECTS 배열에 detail 만 채우면 그대로 살아난다. */
+  function sectionMarkup(s, value) {
+    let body;
+    if (!value || (Array.isArray(value) && value.length === 0)) {
+      body = '<p>내용 준비 중입니다.</p>';
+    } else if (s.as === 'list') {
+      body = `<ul class="detail__list">${value.map(v => `<li>${esc(v)}</li>`).join('')}</ul>`;
+    } else if (s.as === 'tags') {
+      body = `<ul class="detail__tags">${value.map(v => `<li>${esc(v)}</li>`).join('')}</ul>`;
+    } else {
+      body = `<p>${esc(value)}</p>`;
+    }
+    return `
+      <section class="detail__section">
+        <h3>${esc(s.label)}</h3>
+        ${body}
+      </section>`;
+  }
+
   function cardMarkup(p, isClone) {
     return `
       <button class="card" type="button"
               data-index="${PROJECTS.indexOf(p)}"
               ${isClone ? 'aria-hidden="true" tabindex="-1"' : ''}>
-        <span class="card__thumb"><span class="card__soon">Coming Soon</span></span>
+        <span class="card__thumb">${thumbInner(p, '')}</span>
         <span class="card__num">${p.num}</span>
         <span class="card__title">${p.title}</span>
         <span class="card__summary">${p.summary}</span>
@@ -712,11 +879,21 @@ body.is-locked { overflow: hidden; }
     document.getElementById('detailNum').textContent = p.num;
     document.getElementById('detailTitle').textContent = p.title;
     document.getElementById('detailSummary').textContent = p.summary;
-    document.getElementById('detailBody').innerHTML = SECTIONS.map(s => `
-      <section class="detail__section">
-        <h3>${s}</h3>
-        <p>내용 준비 중입니다.</p>
-      </section>`).join('');
+
+    document.getElementById('detailThumb').innerHTML = thumbInner(p, `${p.title} 첫 화면`);
+
+    // liveUrl 이 있는 프로젝트에만 CTA를 노출한다
+    const cta = document.getElementById('detailCta');
+    if (p.liveUrl) {
+      cta.href = p.liveUrl;
+      cta.hidden = false;
+    } else {
+      cta.removeAttribute('href');
+      cta.hidden = true;
+    }
+
+    document.getElementById('detailBody').innerHTML =
+      SECTIONS.map(s => sectionMarkup(s, p.detail && p.detail[s.key])).join('');
 
     holdLoop();
     document.body.classList.add('is-locked');
