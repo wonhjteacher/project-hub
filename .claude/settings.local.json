@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(curl *)",
-      "Bash(grep *)"
+      "Bash(grep *)",
+      "WebFetch(domain:review-two-murex.vercel.app)",
+      "Bash(python3 -m http.server 8899)",
+      "Bash(sips -c 490 871 \"/var/folders/m2/_x9jqzms0w7fg85sjm63wbfh0000gn/T/claude-chrome-screenshots-Tc3dSE/screenshot-1786692438235-5.jpg\" --out assets/project-01.jpg)",
+      "Bash(python3 -)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(pkill -f \"http.server 8899\")"
     ]
   }
 }
